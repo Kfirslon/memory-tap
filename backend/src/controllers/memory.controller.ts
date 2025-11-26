@@ -44,7 +44,8 @@ export const createMemory = async (req: Request, res: Response) => {
 
         // If this memory should have a reminder, create it
         if (structuredData.reminder_needed && structuredData.date) {
-            const { error: reminderError } = await supabase
+            console.log('📅 Creating reminder for memory:', data.id);
+            const { data: reminderData, error: reminderError } = await supabase
                 .from('reminders')
                 .insert([
                     {
@@ -53,10 +54,14 @@ export const createMemory = async (req: Request, res: Response) => {
                         due_date: structuredData.date,
                         is_completed: false,
                     },
-                ]);
+                ])
+                .select()
+                .single();
 
             if (reminderError) {
                 console.error('⚠️ Reminder creation failed:', reminderError);
+            } else {
+                console.log('✅ Reminder created:', reminderData?.id);
             }
         }
 

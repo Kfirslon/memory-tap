@@ -53,17 +53,23 @@ Analyze the user's text and extract the following fields in JSON format:
   - For lists: "List: item1, item2, item3".
   - For thoughts: "Idea: [core concept]".
 - category: One of ["task", "reminder", "idea", "note"].
-  - Use "reminder" if there is a specific time or deadline mentioned.
+  - Use "reminder" if ANY of these apply:
+    * A specific time or deadline is mentioned (e.g., "tomorrow", "next week", "due date")
+    * The user asks to be reminded or to remember something
+    * The user mentions checking, reviewing, or doing something later
+    * Action items with time context (e.g., "check Canvas for assignments")
   - Use "task" for actionable items without a specific deadline.
   - Use "idea" for creative thoughts or concepts.
   - Use "note" for general information or logs.
 - date: A relevant date/time mentioned in the note (ISO 8601 format YYYY-MM-DDTHH:mm:ss), or null if none.
   - If a relative date is used (e.g. "next Monday", "tomorrow"), calculate the exact date based on the Current Date provided above.
   - If a time is not specified but a date is, default to 9:00 AM (09:00:00) for that date.
-- reminder_needed: boolean, true if the user asks to be reminded or it's a task with a deadline.
+  - For vague references like "later", "soon", or "check for X", set date to tomorrow at 9:00 AM.
+- reminder_needed: boolean, true if category is "reminder" or if there's any time-sensitive action.
 
 Examples:
 - "Remind me to call Mom at 5pm tomorrow" → summary: "Call Mom", category: "reminder", date: "2025-11-26T17:00:00", reminder_needed: true
+- "Checking on Canvas for assignments, due date or something" → summary: "Check Canvas for assignments and due dates", category: "reminder", date: "2025-11-26T09:00:00", reminder_needed: true
 - "Buy milk, eggs, and bread" → summary: "List: milk, eggs, bread", category: "task", reminder_needed: false
 - "I have an idea for a new app about cats" → summary: "Idea: Cat app concept", category: "idea"
 
