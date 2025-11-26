@@ -24,7 +24,7 @@ export const createMemory = async (req: Request, res: Response) => {
                     date: structuredData.date ? new Date(structuredData.date) : null,
                     reminder_needed: structuredData.reminder_needed,
                     audio_url: audioUrl,
-                    user_id: '00000000-0000-0000-0000-000000000000' // Placeholder user ID
+                    user_id: null // Placeholder user ID
                 }
             ])
             .select()

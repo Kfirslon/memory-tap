@@ -34,7 +34,7 @@ export const transcribeAudio = async (filePath: string): Promise<string> => {
 
 export const generateMemory = async (text: string) => {
     try {
-        const model = provider === 'groq' ? 'llama3-8b-8192' : 'gpt-4o';
+        const model = provider === 'groq' ? 'llama-3.1-8b-instant' : 'gpt-4o';
 
         const completion = await openai.chat.completions.create({
             messages: [
