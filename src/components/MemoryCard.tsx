@@ -1,4 +1,4 @@
-import { Clock, Bell } from "lucide-react";
+import { Clock, Bell, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ interface MemoryCardProps {
   category: "task" | "reminder" | "idea" | "note";
   timestamp: string;
   hasReminder?: boolean;
+  isFavorite?: boolean;
   onClick?: () => void;
 }
 
@@ -19,24 +20,16 @@ const categoryColors = {
   note: "bg-muted text-muted-foreground border-border",
 };
 
-const formatDate = (isoString: string) => {
+const formatDateTime = (isoString: string) => {
   if (!isoString) return "";
   const date = new Date(isoString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
   });
 };
 
@@ -45,12 +38,16 @@ export const MemoryCard = ({
   category,
   timestamp,
   hasReminder,
+  isFavorite,
   onClick,
 }: MemoryCardProps) => {
   return (
     <Card
       onClick={onClick}
-      className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5"
+      className={cn(
+        "cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5",
+        isFavorite && "border-yellow-400 bg-yellow-50/50"
+      )}
     >
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
@@ -62,13 +59,18 @@ export const MemoryCard = ({
               </Badge>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
-                <span>{formatDate(timestamp)}</span>
+                <span>{formatDateTime(timestamp)}</span>
               </div>
             </div>
           </div>
-          {hasReminder && (
-            <Bell className="h-4 w-4 text-warning flex-shrink-0 mt-1" />
-          )}
+          <div className="flex items-center gap-2 flex-shrink-0 mt-1">
+            {isFavorite && (
+              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+            )}
+            {hasReminder && (
+              <Bell className="h-4 w-4 text-warning" />
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
