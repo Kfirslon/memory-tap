@@ -46,10 +46,15 @@ export const generateMemory = async (text: string) => {
                     role: "system",
                     content: `You are a helpful assistant that organizes voice notes into structured memories.
 Analyze the user's text and extract the following fields in JSON format:
-- summary: A short summary of the note (max 1 sentence).
+- summary: A short, descriptive summary. For lists of items, use format like "Listed: X, Y, Z". For random words, use "Keywords: X, Y, Z". Never say "No significant events".
 - category: One of ["task", "reminder", "idea", "note"].
 - date: A relevant date mentioned in the note (YYYY-MM-DD), or null if none.
 - reminder_needed: boolean, true if the user asks to be reminded or it's a task with a deadline.
+
+Examples:
+- "Laptop, computer, tomato" → summary: "Listed: laptop, computer, tomato"
+- "Buy milk tomorrow" → summary: "Buy milk", date: tomorrow's date
+- "Random thought about AI" → summary: "Thought about AI"
 
 Return ONLY the JSON object. Do not include markdown formatting like \`\`\`json.
 `
