@@ -10,14 +10,8 @@ export const createMemory = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Text is required' });
         }
 
-        console.log('📝 Creating memory with text:', text);
-        console.log('🎵 Audio URL:', audioUrl);
-
         // Generate structured data from text
         const structuredData = await generateMemory(text);
-
-        // FIX: Convert Windows backslashes to forward slashes for URLs
-        const normalizedAudioUrl = audioUrl ? audioUrl.replace(/\\/g, '/') : null;
 
         // Save to Supabase
         const { data, error } = await supabase
@@ -29,8 +23,8 @@ export const createMemory = async (req: Request, res: Response) => {
                     category: structuredData.category,
                     date: structuredData.date ? new Date(structuredData.date) : null,
                     reminder_needed: structuredData.reminder_needed,
-                    audio_url: normalizedAudioUrl, // ← Use normalized path
-                    user_id: null
+                    audio_url: audioUrl,
+                    user_id: null // Placeholder user ID
                 }
             ])
             .select()
@@ -38,10 +32,9 @@ export const createMemory = async (req: Request, res: Response) => {
 
         if (error) throw error;
 
-        console.log('✅ Memory created:', data.id);
         res.json(data);
     } catch (error) {
-        console.error('❌ Error creating memory:', error);
+        console.error(error);
         res.status(500).json({ error: 'Failed to create memory' });
     }
 };
@@ -54,10 +47,28 @@ export const getMemories = async (req: Request, res: Response) => {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
+
         res.json(data);
     } catch (error) {
-        console.error('Error fetching memories:', error);
         res.status(500).json({ error: 'Failed to fetch memories' });
+    }
+};
+
+export const searchMemories = async (req: Request, res: Response) => {
+    try {
+        const { query } = req.body;
+
+        // Simple text search for now
+        const { data, error } = await supabase
+            .from('memories')
+            .select('*')
+            .ilike('full_text', `%${query}%`);
+
+        if (error) throw error;
+
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: 'Search failed' });
     }
 };
 
@@ -71,6 +82,7 @@ export const getMemoryById = async (req: Request, res: Response) => {
             .single();
 
         if (error) throw error;
+
         res.json(data);
     } catch (error) {
         res.status(404).json({ error: 'Memory not found' });
@@ -90,58 +102,9 @@ export const updateMemory = async (req: Request, res: Response) => {
             .single();
 
         if (error) throw error;
+
         res.json(data);
     } catch (error) {
         res.status(500).json({ error: 'Failed to update memory' });
-    }
-};
-
-export const deleteMemory = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const { error } = await supabase
-            .from('memories')
-            .delete()
-            .eq('id', id);
-
-        if (error) throw error;
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to delete memory' });
-    }
-};
-
-export const searchMemories = async (req: Request, res: Response) => {
-    try {
-        const { query } = req.body;
-        const { data, error } = await supabase
-            .from('memories')
-            .select('*')
-            .or(`full_text.ilike.%${query}%,summary.ilike.%${query}%`)
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: 'Search failed' });
-    }
-};
-
-export const toggleFavorite = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const { is_favorite } = req.body;
-
-        const { data, error } = await supabase
-            .from('memories')
-            .update({ is_favorite })
-            .eq('id', id)
-            .select()
-            .single();
-
-        if (error) throw error;
-        res.json(data);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to toggle favorite' });
     }
 };
