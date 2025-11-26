@@ -1,19 +1,78 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { LogOut, FileText, Bell, Brain } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
 
 const Profile = () => {
-  const handleLogout = () => {
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
+  const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+  const [memoryCount, setMemoryCount] = useState(0);
+  const [reminderCount, setReminderCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const authData = await api.checkAuth();
+      if (authData.authenticated && authData.user) {
+        setUser(authData.user);
+
+        // Fetch counts
+        const memories = await api.getMemories();
+        const reminders = await api.getReminders();
+        setMemoryCount(memories.length);
+        setReminderCount(reminders.length);
+      } else {
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Failed to fetch user data:', error);
+      navigate('/login');
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleLogout = async () => {
+    try {
+      await api.logout();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+      navigate('/login');
+    } catch (error) {
+      toast({
+        title: "Logout failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const initials = user?.name
+    ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+    : 'U';
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-24 space-y-6">
@@ -23,13 +82,14 @@ const Profile = () => {
         <CardContent className="p-6">
           <div className="flex items-center gap-4 mb-6">
             <Avatar className="h-16 w-16">
+              {user?.picture && <AvatarImage src={user.picture} alt={user.name} />}
               <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                JD
+                {initials}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="font-semibold text-lg">John Doe</h2>
-              <p className="text-sm text-muted-foreground">john@example.com</p>
+              <h2 className="font-semibold text-lg">{user?.name || 'Guest User'}</h2>
+              <p className="text-sm text-muted-foreground">{user?.email || 'Not logged in'}</p>
             </div>
           </div>
 
@@ -41,14 +101,14 @@ const Profile = () => {
                 <FileText className="h-4 w-4" />
                 <span className="text-xs">Memories</span>
               </div>
-              <p className="text-2xl font-bold">156</p>
+              <p className="text-2xl font-bold">{memoryCount}</p>
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Bell className="h-4 w-4" />
                 <span className="text-xs">Reminders</span>
               </div>
-              <p className="text-2xl font-bold">12</p>
+              <p className="text-2xl font-bold">{reminderCount}</p>
             </div>
           </div>
         </CardContent>

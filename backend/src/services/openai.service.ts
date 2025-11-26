@@ -45,16 +45,27 @@ export const generateMemory = async (text: string) => {
                 {
                     role: "system",
                     content: `You are a helpful assistant that organizes voice notes into structured memories.
+Current Date: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.
+
 Analyze the user's text and extract the following fields in JSON format:
-- summary: A short, descriptive summary. For lists of items, use format like "Listed: X, Y, Z". For random words, use "Keywords: X, Y, Z". Never say "No significant events".
+- summary: A specific, actionable summary. Avoid generic phrases like "User mentioned...". Be direct.
+  - For tasks: Start with a verb (e.g., "Buy milk", "Call John").
+  - For lists: "List: item1, item2, item3".
+  - For thoughts: "Idea: [core concept]".
 - category: One of ["task", "reminder", "idea", "note"].
-- date: A relevant date mentioned in the note (YYYY-MM-DD), or null if none.
+  - Use "reminder" if there is a specific time or deadline mentioned.
+  - Use "task" for actionable items without a specific deadline.
+  - Use "idea" for creative thoughts or concepts.
+  - Use "note" for general information or logs.
+- date: A relevant date/time mentioned in the note (ISO 8601 format YYYY-MM-DDTHH:mm:ss), or null if none.
+  - If a relative date is used (e.g. "next Monday", "tomorrow"), calculate the exact date based on the Current Date provided above.
+  - If a time is not specified but a date is, default to 9:00 AM (09:00:00) for that date.
 - reminder_needed: boolean, true if the user asks to be reminded or it's a task with a deadline.
 
 Examples:
-- "Laptop, computer, tomato" → summary: "Listed: laptop, computer, tomato"
-- "Buy milk tomorrow" → summary: "Buy milk", date: tomorrow's date
-- "Random thought about AI" → summary: "Thought about AI"
+- "Remind me to call Mom at 5pm tomorrow" → summary: "Call Mom", category: "reminder", date: "2025-11-26T17:00:00", reminder_needed: true
+- "Buy milk, eggs, and bread" → summary: "List: milk, eggs, bread", category: "task", reminder_needed: false
+- "I have an idea for a new app about cats" → summary: "Idea: Cat app concept", category: "idea"
 
 Return ONLY the JSON object. Do not include markdown formatting like \`\`\`json.
 `

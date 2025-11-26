@@ -235,6 +235,7 @@ export default function MemoryDetail() {
                           max={duration || 0}
                           value={currentTime}
                           onChange={handleSeek}
+                          step="0.1"
                           className="w-full h-1 bg-primary/20 rounded-lg appearance-none cursor-pointer
                             [&::-webkit-slider-thumb]:appearance-none
                             [&::-webkit-slider-thumb]:w-3
@@ -267,7 +268,14 @@ export default function MemoryDetail() {
                     />
                   ) : (
                     <p className="text-sm text-muted-foreground mt-1">
-                      {new Date(memory.date).toLocaleDateString()}
+                      {new Date(memory.date).toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'numeric',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true
+                      })}
                     </p>
                   )}
                 </div>

@@ -20,6 +20,10 @@ export const createMemory = async (req: Request, res: Response) => {
         const normalizedAudioUrl = audioUrl ? audioUrl.replace(/\\/g, '/') : null;
 
         // Save to Supabase
+        // Ensure reminder flag is set if a date is provided
+        if (structuredData.date && !structuredData.reminder_needed) {
+            structuredData.reminder_needed = true;
+        }
         const { data, error } = await supabase
             .from('memories')
             .insert([
@@ -30,13 +34,31 @@ export const createMemory = async (req: Request, res: Response) => {
                     date: structuredData.date ? new Date(structuredData.date) : null,
                     reminder_needed: structuredData.reminder_needed,
                     audio_url: normalizedAudioUrl, // ← Use normalized path
-                    user_id: null
+                    user_id: null,
                 }
             ])
             .select()
             .single();
 
         if (error) throw error;
+
+        // If this memory should have a reminder, create it
+        if (structuredData.reminder_needed && structuredData.date) {
+            const { error: reminderError } = await supabase
+                .from('reminders')
+                .insert([
+                    {
+                        memory_id: data.id,
+                        description: structuredData.summary,
+                        due_date: structuredData.date,
+                        is_completed: false,
+                    },
+                ]);
+
+            if (reminderError) {
+                console.error('⚠️ Reminder creation failed:', reminderError);
+            }
+        }
 
         console.log('✅ Memory created:', data.id);
         res.json(data);
@@ -113,12 +135,22 @@ export const deleteMemory = async (req: Request, res: Response) => {
 
 export const searchMemories = async (req: Request, res: Response) => {
     try {
-        const { query } = req.body;
-        const { data, error } = await supabase
+        const { query, category } = req.body;
+
+        let dbQuery = supabase
             .from('memories')
             .select('*')
-            .or(`full_text.ilike.%${query}%,summary.ilike.%${query}%`)
             .order('created_at', { ascending: false });
+
+        if (query) {
+            dbQuery = dbQuery.or(`full_text.ilike.%${query}%,summary.ilike.%${query}%`);
+        }
+
+        if (category && category !== 'all') {
+            dbQuery = dbQuery.eq('category', category);
+        }
+
+        const { data, error } = await dbQuery;
 
         if (error) throw error;
         res.json(data);

@@ -9,8 +9,9 @@ import Timeline from "./pages/Timeline";
 import MemoryDetail from "./pages/MemoryDetail";
 import Search from "./pages/Search";
 import Reminders from "./pages/Reminders";
-import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/reminders" element={<Reminders />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/login" element={<Login />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />

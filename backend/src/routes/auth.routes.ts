@@ -12,7 +12,7 @@ router.get(
     passport.authenticate('google', { failureRedirect: '/login' }),
     (req: Request, res: Response) => {
         // Successful authentication, redirect to frontend (adjust port if needed)
-        res.redirect('http://localhost:5175');
+        res.redirect('http://localhost:8080');
     }
 );
 

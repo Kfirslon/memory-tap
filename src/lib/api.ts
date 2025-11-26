@@ -14,6 +14,21 @@ const transformMemory = (dbMemory: any) => ({
 });
 
 export const api = {
+    checkAuth: async () => {
+        const response = await fetch('http://localhost:3000/auth/check', { credentials: 'include' });
+        if (!response.ok) throw new Error('Auth check failed');
+        return response.json();
+    },
+
+    logout: async () => {
+        const response = await fetch('http://localhost:3000/auth/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        if (!response.ok) throw new Error('Logout failed');
+        return response.json();
+    },
+
     uploadAudio: async (audioBlob: Blob) => {
         const formData = new FormData();
         formData.append('audio', audioBlob, 'recording.webm');
@@ -60,11 +75,11 @@ export const api = {
         return transformMemory(dbMemory);
     },
 
-    searchMemories: async (query: string) => {
+    searchMemories: async (query: string, category?: string) => {
         const response = await fetch(`${API_URL}/search`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query }),
+            body: JSON.stringify({ query, category }),
         });
         if (!response.ok) throw new Error('Search failed');
         const dbMemories = await response.json();
