@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { LogOut, FileText, Bell, Brain } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { api } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 
 const Profile = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [memoryCount, setMemoryCount] = useState(0);
   const [reminderCount, setReminderCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,18 +24,32 @@ const Profile = () => {
 
   const fetchUserData = async () => {
     try {
-      const authData = await api.checkAuth();
-      if (authData.authenticated && authData.user) {
-        setUser(authData.user);
-
-        // Fetch counts
-        const memories = await api.getMemories();
-        const reminders = await api.getReminders();
-        setMemoryCount(memories.length);
-        setReminderCount(reminders.length);
-      } else {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
         navigate('/login');
+        return;
       }
+
+      setUser(authUser);
+
+      // Fetch profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
+      setProfile(profileData);
+
+      // Fetch counts
+      const { count: mCount } = await supabase
+        .from('memories')
+        .select('*', { count: 'exact', head: true });
+      const { count: rCount } = await supabase
+        .from('reminders')
+        .select('*', { count: 'exact', head: true });
+      
+      setMemoryCount(mCount || 0);
+      setReminderCount(rCount || 0);
     } catch (error) {
       console.error('Failed to fetch user data:', error);
       navigate('/login');
@@ -45,7 +60,7 @@ const Profile = () => {
 
   const handleLogout = async () => {
     try {
-      await api.logout();
+      await supabase.auth.signOut();
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
@@ -70,9 +85,9 @@ const Profile = () => {
     );
   }
 
-  const initials = user?.name
-    ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
-    : 'U';
+  const initials = profile?.full_name
+    ? profile.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+    : user?.email?.[0]?.toUpperCase() || 'U';
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-24 space-y-6">
@@ -82,13 +97,13 @@ const Profile = () => {
         <CardContent className="p-6">
           <div className="flex items-center gap-4 mb-6">
             <Avatar className="h-16 w-16">
-              {user?.picture && <AvatarImage src={user.picture} alt={user.name} />}
+              {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt={profile.full_name} />}
               <AvatarFallback className="bg-primary text-primary-foreground text-xl">
                 {initials}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="font-semibold text-lg">{user?.name || 'Guest User'}</h2>
+              <h2 className="font-semibold text-lg">{profile?.full_name || user?.email || 'Guest User'}</h2>
               <p className="text-sm text-muted-foreground">{user?.email || 'Not logged in'}</p>
             </div>
           </div>
