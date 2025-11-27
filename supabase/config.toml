@@ -1,1 +1,4 @@
 project_id = "sexpgexnexoqoqmtfwvy"
+
+[functions.analyze-memory]
+verify_jwt = true

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { api } from "@/lib/api";
+import { memoryApi } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
 export default function MemoryDetail() {
@@ -27,7 +27,7 @@ export default function MemoryDetail() {
 
   const loadMemory = async () => {
     try {
-      const data = await api.getMemoryById(id!);
+      const data = await memoryApi.getMemoryById(id!);
       setMemory(data);
     } catch (error) {
       toast({
@@ -40,7 +40,7 @@ export default function MemoryDetail() {
 
   const handleSave = async () => {
     try {
-      await api.updateMemory(id!, memory);
+      await memoryApi.updateMemory(id!, memory);
       setIsEditing(false);
       toast({
         title: "Success",

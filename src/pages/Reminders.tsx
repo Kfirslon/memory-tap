@@ -5,7 +5,7 @@ import { LoadingState } from "@/components/LoadingState";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { Bell } from "lucide-react";
-import { api } from "@/lib/api";
+import { reminderApi } from "@/lib/supabase";
 import { format, isToday, isThisWeek, parseISO } from "date-fns";
 
 interface ReminderGroup {
@@ -28,12 +28,12 @@ const Reminders = () => {
     setError(false);
 
     try {
-      const data = await api.getReminders();
+      const data = await reminderApi.getReminders();
 
       // Group reminders
-      const today = data.filter((r: any) => isToday(parseISO(r.due_date)));
-      const thisWeek = data.filter((r: any) => !isToday(parseISO(r.due_date)) && isThisWeek(parseISO(r.due_date)));
-      const later = data.filter((r: any) => !isToday(parseISO(r.due_date)) && !isThisWeek(parseISO(r.due_date)));
+      const today = data.filter((r: any) => isToday(parseISO(r.dueDate)));
+      const thisWeek = data.filter((r: any) => !isToday(parseISO(r.dueDate)) && isThisWeek(parseISO(r.dueDate)));
+      const later = data.filter((r: any) => !isToday(parseISO(r.dueDate)) && !isThisWeek(parseISO(r.dueDate)));
 
       const newGroups = [];
       if (today.length > 0) newGroups.push({ title: "Today", items: today });

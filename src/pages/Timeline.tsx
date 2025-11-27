@@ -5,16 +5,7 @@ import { LoadingState } from "@/components/LoadingState";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorState } from "@/components/ErrorState";
 import { Inbox } from "lucide-react";
-import { api } from "@/lib/api";
-
-interface Memory {
-  id: string;
-  summary: string;
-  category: "task" | "reminder" | "idea" | "note";
-  timestamp: string;
-  hasReminder: boolean;
-  isFavorite?: boolean;
-}
+import { memoryApi, type Memory } from "@/lib/supabase";
 
 const Timeline = () => {
   const navigate = useNavigate();
@@ -33,7 +24,7 @@ const Timeline = () => {
     setError(false);
 
     try {
-      const data = await api.getMemories();
+      const data = await memoryApi.getMemories();
       setMemories(data);
     } catch (err) {
       setError(true);
@@ -57,7 +48,7 @@ const Timeline = () => {
 
     if (window.confirm(`Are you sure you want to delete ${selectedIds.size} memories?`)) {
       try {
-        await Promise.all(Array.from(selectedIds).map(id => api.deleteMemory(id)));
+        await Promise.all(Array.from(selectedIds).map(id => memoryApi.deleteMemory(id)));
         setMemories(memories.filter(m => !selectedIds.has(m.id)));
         setSelectedIds(new Set());
         setIsSelectionMode(false);
@@ -145,7 +136,7 @@ const Timeline = () => {
                 onClick={async (e) => {
                   e.stopPropagation();
                   try {
-                    await api.toggleFavorite(memory.id, !memory.isFavorite);
+                    await memoryApi.toggleFavorite(memory.id, !memory.isFavorite);
                     setMemories(memories.map(m =>
                       m.id === memory.id ? { ...m, isFavorite: !m.isFavorite } : m
                     ));

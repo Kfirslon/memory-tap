@@ -6,7 +6,7 @@ import { MemoryCard } from "@/components/MemoryCard";
 import { EmptyState } from "@/components/EmptyState";
 import { LoadingState } from "@/components/LoadingState";
 import { Badge } from "@/components/ui/badge";
-import { api } from "@/lib/api";
+import { memoryApi } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 const categories = [
@@ -36,7 +36,8 @@ const Search = () => {
     setHasSearched(true);
 
     try {
-      const data = await api.searchMemories(searchQuery, searchCategory);
+      const categoryFilter = searchCategory !== "all" ? searchCategory : undefined;
+      const data = await memoryApi.searchMemories(searchQuery, categoryFilter);
       setResults(data);
     } catch (err) {
       setResults([]);
