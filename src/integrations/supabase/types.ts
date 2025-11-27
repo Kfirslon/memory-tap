@@ -14,7 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      memories: {
+        Row: {
+          audio_url: string | null
+          category: string | null
+          created_at: string
+          date: string | null
+          full_text: string
+          id: string
+          is_favorite: boolean | null
+          reminder_needed: boolean | null
+          summary: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          audio_url?: string | null
+          category?: string | null
+          created_at?: string
+          date?: string | null
+          full_text: string
+          id?: string
+          is_favorite?: boolean | null
+          reminder_needed?: boolean | null
+          summary?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          audio_url?: string | null
+          category?: string | null
+          created_at?: string
+          date?: string | null
+          full_text?: string
+          id?: string
+          is_favorite?: boolean | null
+          reminder_needed?: boolean | null
+          summary?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          is_completed: boolean | null
+          memory_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          due_date: string
+          id?: string
+          is_completed?: boolean | null
+          memory_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          is_completed?: boolean | null
+          memory_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "memories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
